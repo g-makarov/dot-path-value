@@ -1,0 +1,56 @@
+{
+  "name": "dot-path-value",
+  "version": "0.0.1",
+  "description": "Safely get deep nested properties using dot notation",
+  "author": "German Makarov <cxdcjs@gmail.com>",
+  "private": false,
+  "homepage": "https://github.com/g-makarov/dot-path-value",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/g-makarov/dot-path-value"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/g-makarov/dot-path-value/issues"
+  },
+  "type": "module",
+  "source": "src/index.ts",
+  "exports": {
+    "require": "./dist/index.cjs",
+    "default": "./dist/index.esm.js"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.esm.js",
+  "unpkg": "./dist/index.umd.js",
+  "scripts": {
+    "build": "microbundle",
+    "prettier": "prettier --write src/**/*",
+    "prepublishOnly": "npm run build",
+    "postversion": "git push && git push --tags"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "src",
+    "tsconfig.json"
+  ],
+  "devDependencies": {
+    "microbundle": "^0.15.1",
+    "prettier": "^2.8.3"
+  },
+  "keywords": [
+    "dot",
+    "path",
+    "get",
+    "value",
+    "deep",
+    "nested",
+    "object",
+    "property",
+    "typescript",
+    "type",
+    "access",
+    "notation",
+    "array"
+  ]
+}
