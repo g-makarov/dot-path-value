@@ -19,7 +19,7 @@ Safely get deep nested properties using dot notation.
 
 - TypeScript first 🤙
 - Support arrays
-- Lightweight
+- Tiny (198b gzipped)
 - No dependencies
 
 ## Installation
