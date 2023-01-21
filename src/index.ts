@@ -1,22 +1,12 @@
-export type Primitive =
-  | null
-  | undefined
-  | string
-  | number
-  | boolean
-  | symbol
-  | bigint;
+export type Primitive = null | undefined | string | number | boolean | symbol | bigint;
 
 type ArrayKey = number;
-type IsTuple<T extends readonly any[]> = number extends T["length"]
-  ? false
-  : true;
+
+type IsTuple<T extends readonly any[]> = number extends T['length'] ? false : true;
+
 type TupleKeys<T extends readonly any[]> = Exclude<keyof T, keyof any[]>;
 
-export type PathConcat<
-  TKey extends string | number,
-  TValue
-> = TValue extends Primitive
+export type PathConcat<TKey extends string | number, TValue> = TValue extends Primitive
   ? `${TKey}`
   : `${TKey}` | `${TKey}.${Path<TValue>}`;
 
@@ -30,10 +20,7 @@ export type Path<T> = T extends readonly (infer V)[]
       [K in keyof T]-?: PathConcat<K & string, T[K]>;
     }[keyof T];
 
-type ArrayPathConcat<
-  TKey extends string | number,
-  TValue
-> = TValue extends Primitive
+type ArrayPathConcat<TKey extends string | number, TValue> = TValue extends Primitive
   ? never
   : TValue extends readonly (infer U)[]
   ? U extends Primitive
@@ -73,10 +60,7 @@ export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
 
 export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
   obj: T,
-  path: TPath
+  path: TPath,
 ): PathValue<T, TPath> {
-  return path.split(".").reduce((acc, key) => acc[key], obj) as PathValue<
-    T,
-    TPath
-  >;
+  return path.split('.').reduce((acc, key) => acc[key], obj) as PathValue<T, TPath>;
 }

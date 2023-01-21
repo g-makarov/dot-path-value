@@ -21,6 +21,7 @@ Safely get deep nested properties using dot notation.
 - Support arrays
 - Tiny (198b gzipped)
 - No dependencies
+- Utility types `Path` and `PathValue`
 
 ## Installation
 
@@ -36,17 +37,31 @@ yarn add dot-path-value
 ## Usage
 
 ```ts
-import { getByPath } from "dot-path-value";
+import { getByPath } from 'dot-path-value';
 
 const obj = {
   a: {
-    b: {
-      c: "hello",
-    },
+    b: 'hello',
+    d: [
+      {
+        e: 'world',
+      }
+    ],
   },
 };
 
-getByPath(obj, "a.b.c"); // outputs 'hello'
+// access though object
+getByPath(obj, 'a.b'); // outputs 'hello' with type `string`
+
+// access though array
+getByPath(obj, 'a.d.0.e'); // outputs 'world' with type `string`
+getByPath(obj, 'a.d.0'); // outputs '{ e: 'world' }' with type `{ e: string }`
+
+// also you can pass array as first argument
+getByPath([{ a: 1 }], '0.a'); // outputs '1' with type `number`
+
+// typescript errors
+getByPath(obj, 'a.b.c'); // `c` property does not exist
 ```
 
 ## Types
@@ -57,3 +72,19 @@ getByPath(obj, "a.b.c"); // outputs 'hello'
 | --------------------- | ----------------------------------------------------------------------------------------- |
 | `Path<T>`             | converts nested structure `T` into a string representation of the paths to its properties |
 | `PathValue<T, TPath>` | returns the type of the value at the specified path                                       |
+
+```ts
+const obj = {
+  a: {
+    b: 'hello',
+    d: [
+      {
+        e: 'world',
+      }
+    ],
+  },
+};
+
+type Foo = Path<typeof obj>; // 'a.d' | 'a' | 'a.b' | `a.d.${number}` | `a.d.${number}.e`
+type Bar = PathValue<typeof obj, 'a.b'>; // 'string'
+```
