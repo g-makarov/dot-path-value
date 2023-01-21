@@ -19,6 +19,7 @@
     "require": "./dist/index.cjs",
     "default": "./dist/index.esm.js"
   },
+  "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
   "module": "./dist/index.esm.js",
   "unpkg": "./dist/index.umd.js",
