@@ -50,10 +50,10 @@ const obj = {
   },
 };
 
-// access though object
+// access through object
 getByPath(obj, 'a.b'); // outputs 'hello' with type `string`
 
-// access though array
+// access through array
 getByPath(obj, 'a.d.0.e'); // outputs 'world' with type `string`
 getByPath(obj, 'a.d.0'); // outputs '{ e: 'world' }' with type `{ e: string }`
 
