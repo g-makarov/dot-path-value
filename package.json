@@ -1,6 +1,6 @@
 {
   "name": "dot-path-value",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Safely get deep nested properties using dot notation",
   "author": "German Makarov <cxdcjs@gmail.com>",
   "private": false,
