@@ -73,6 +73,7 @@ getByPath(obj, 'a.b.c'); // `c` property does not exist
 | `Path<T>`             | converts nested structure `T` into a string representation of the paths to its properties |
 | `PathValue<T, TPath>` | returns the type of the value at the specified path                                       |
 
+
 ```ts
 const obj = {
   a: {
