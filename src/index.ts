@@ -62,5 +62,5 @@ export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
   obj: T,
   path: TPath,
 ): PathValue<T, TPath> {
-  return path.split('.').reduce((acc, key) => acc[key], obj) as PathValue<T, TPath>;
+  return path.split('.').reduce((acc, key) => acc?.[key], obj) as PathValue<T, TPath>;
 }
