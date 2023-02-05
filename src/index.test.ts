@@ -14,4 +14,16 @@ describe('getByPath', () => {
     expect(getByPath(arr, '0')).toBe(1);
     expect(getByPath(arr, '2.a')).toBe(3);
   });
+
+  test('should work with optional keys', () => {
+    interface ObjType  {
+      a?: {
+        b: {
+          c: string;
+        };
+      };
+    }
+    const obj: ObjType = {};
+    expect(getByPath(obj, 'a.b.c')).toBe(undefined);
+  });
 });
