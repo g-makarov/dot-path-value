@@ -42,7 +42,7 @@ export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
   ? TPath extends `${infer K}.${infer R}`
     ? K extends keyof T
       ? R extends Path<T[K]>
-        ? PathValue<T[K], R>
+        ? undefined extends T[K] ? PathValue<T[K], R> | undefined : PathValue<T[K], R>
         : never
       : K extends `${ArrayKey}`
       ? T extends readonly (infer V)[]
