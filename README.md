@@ -19,7 +19,7 @@ Safely get deep nested properties using dot notation.
 
 - TypeScript first 🤙
 - Support arrays
-- Tiny (198b gzipped)
+- Tiny
 - No dependencies
 - Utility types `Path` and `PathValue`
 
@@ -73,8 +73,11 @@ getByPath(obj, 'a.b.c'); // `c` property does not exist
 | `Path<T>`             | converts nested structure `T` into a string representation of the paths to its properties |
 | `PathValue<T, TPath>` | returns the type of the value at the specified path                                       |
 
+### Types usage
 
 ```ts
+import { Path, PathValue } from 'dot-path-value';
+
 const obj = {
   a: {
     b: 'hello',
