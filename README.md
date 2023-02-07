@@ -14,6 +14,9 @@ Safely get deep nested properties using dot notation.
 <a href="https://bundlephobia.com/package/dot-path-value">
   <img alt="npm gzip minified bundle size" src="https://img.shields.io/bundlephobia/minzip/dot-path-value?style=flat-square">
 </a>
+<a href="https://github.com/g-makarov/dot-path-value">
+  <img alt="npm gzip minified bundle size" src="https://img.shields.io/github/stars/g-makarov/dot-path-value?style=flat-square">
+</a>
 
 ## Features
 
