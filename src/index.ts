@@ -12,50 +12,50 @@ export type PathConcat<TKey extends string | number, TValue> = TValue extends Pr
 
 export type Path<T> = T extends readonly (infer V)[]
   ? IsTuple<T> extends true
-    ? {
-        [K in TupleKeys<T>]-?: PathConcat<K & string, T[K]>;
-      }[TupleKeys<T>]
-    : PathConcat<ArrayKey, V>
+  ? {
+    [K in TupleKeys<T>]-?: PathConcat<K & string, T[K]>;
+  }[TupleKeys<T>]
+  : PathConcat<ArrayKey, V>
   : {
-      [K in keyof T]-?: PathConcat<K & string, T[K]>;
-    }[keyof T];
+    [K in keyof T]-?: PathConcat<K & string, T[K]>;
+  }[keyof T];
 
 type ArrayPathConcat<TKey extends string | number, TValue> = TValue extends Primitive
   ? never
   : TValue extends readonly (infer U)[]
   ? U extends Primitive
-    ? never
-    : `${TKey}` | `${TKey}.${ArrayPath<TValue>}`
+  ? never
+  : `${TKey}` | `${TKey}.${ArrayPath<TValue>}`
   : `${TKey}.${ArrayPath<TValue>}`;
 
 export type ArrayPath<T> = T extends readonly (infer V)[]
   ? IsTuple<T> extends true
-    ? {
-        [K in TupleKeys<T>]-?: ArrayPathConcat<K & string, T[K]>;
-      }[TupleKeys<T>]
-    : ArrayPathConcat<ArrayKey, V>
+  ? {
+    [K in TupleKeys<T>]-?: ArrayPathConcat<K & string, T[K]>;
+  }[TupleKeys<T>]
+  : ArrayPathConcat<ArrayKey, V>
   : {
-      [K in keyof T]-?: ArrayPathConcat<K & string, T[K]>;
-    }[keyof T];
+    [K in keyof T]-?: ArrayPathConcat<K & string, T[K]>;
+  }[keyof T];
 
 export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
   ? TPath extends `${infer K}.${infer R}`
-    ? K extends keyof T
-      ? R extends Path<T[K]>
-        ? undefined extends T[K] ? PathValue<T[K], R> | undefined : PathValue<T[K], R>
-        : never
-      : K extends `${ArrayKey}`
-      ? T extends readonly (infer V)[]
-        ? PathValue<V, R & Path<V>>
-        : never
-      : never
-    : TPath extends keyof T
-    ? T[TPath]
-    : TPath extends `${ArrayKey}`
-    ? T extends readonly (infer V)[]
-      ? V
-      : never
-    : never
+  ? K extends keyof T
+  ? R extends Path<T[K]>
+  ? undefined extends T[K] ? PathValue<T[K], R> | undefined : PathValue<T[K], R>
+  : never
+  : K extends `${ArrayKey}`
+  ? T extends readonly (infer V)[]
+  ? PathValue<V, R & Path<V>>
+  : never
+  : never
+  : TPath extends keyof T
+  ? T[TPath]
+  : TPath extends `${ArrayKey}`
+  ? T extends readonly (infer V)[]
+  ? V
+  : never
+  : never
   : never;
 
 export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
@@ -63,4 +63,21 @@ export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
   path: TPath,
 ): PathValue<T, TPath> {
   return path.split('.').reduce((acc, key) => acc?.[key], obj) as PathValue<T, TPath>;
+}
+
+export function setByPath<T extends Record<string, any>, TPath extends Path<T>>(
+  obj: T,
+  path: TPath,
+  value: PathValue<T, TPath>
+) {
+  const [key, ...route] = (path.split(".") as TPath[]).reverse();
+
+
+  const target = route.length
+    ? getByPath(obj, route.reverse().join(".") as Path<T>)
+    : obj;
+
+  if (target) {
+    target[key!] = value;
+  }
 }
