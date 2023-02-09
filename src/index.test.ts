@@ -1,7 +1,5 @@
 import { getByPath, setByPath } from './index';
 
-let obj: { a: { b: { c: number } }; d: { e: number }[] };
-
 describe('getByPath', () => {
   const obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
 
@@ -31,11 +29,9 @@ describe('getByPath', () => {
 });
 
 describe('setByPath', () => {
-  beforeEach(() => {
-    obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
-  });
-
   test("should set the value at the specified path", () => {
+    const obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
+
     setByPath(obj, "a.b.c", 2);
     expect(obj.a.b.c).toEqual(2);
 
