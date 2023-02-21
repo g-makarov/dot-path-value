@@ -1,5 +1,6 @@
 import { getByPath, setByPath } from './index';
 
+
 describe('getByPath', () => {
   const obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
 
@@ -52,7 +53,13 @@ describe('setByPath', () => {
 
   });
 
-  test('should set nothing if the parent path does not exist', () => {
+  test('should return the changed object', () => {
+    const obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
+    const result = setByPath(obj, "a.b.c", 2);
+    expect(result).toBe(obj);
+  });
+
+  test('should a value in paths containing optional properties', () => {
     interface ObjType {
       a?: {
         b: {
@@ -62,6 +69,12 @@ describe('setByPath', () => {
     }
     const obj: ObjType = {};
     setByPath(obj, 'a.b.c', 'test');
-    expect(obj).toEqual({});
+    expect(obj).toEqual({
+      a: {
+        b: {
+          c: 'test',
+        },
+      },
+    });
   });
 });
