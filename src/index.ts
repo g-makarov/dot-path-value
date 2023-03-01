@@ -77,7 +77,8 @@ export function setByPath<T extends Record<string, any>, TPath extends Path<T>>(
 
   let target: T = obj;
 
-  for (const key of segments) {
+  for (let i = 0; i < segments.length; i++) {
+    const key = segments[i] as TPath;
     if (!(key in target)) {
       target[key] = {} as PathValue<T, TPath>;
     }

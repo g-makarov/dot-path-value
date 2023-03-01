@@ -57,6 +57,9 @@
     "type",
     "access",
     "notation",
-    "array"
+    "array",
+    "set",
+    "update",
+    "change"
   ]
 }
