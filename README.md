@@ -1,6 +1,6 @@
 # dot-path-value
 
-Safely get deep nested properties using dot notation.
+Safely get and set deep nested properties using dot notation.
 
 <a href="https://www.npmjs.com/package/dot-path-value">
   <img alt="npm version" src="https://img.shields.io/npm/v/dot-path-value.svg?style=flat-square" />
@@ -40,7 +40,7 @@ yarn add dot-path-value
 ## Usage
 
 ```ts
-import { getByPath } from 'dot-path-value';
+import { getByPath, setByPath } from 'dot-path-value';
 
 const obj = {
   a: {
@@ -65,6 +65,10 @@ getByPath([{ a: 1 }], '0.a'); // outputs '1' with type `number`
 
 // typescript errors
 getByPath(obj, 'a.b.c'); // `c` property does not exist
+
+
+// set a property through an object
+setByPath(obj, 'a.b', "hello there");
 ```
 
 ## Types

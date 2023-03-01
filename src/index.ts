@@ -64,3 +64,27 @@ export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
 ): PathValue<T, TPath> {
   return path.split('.').reduce((acc, key) => acc?.[key], obj) as PathValue<T, TPath>;
 }
+
+export function setByPath<T extends Record<string, any>, TPath extends Path<T>>(
+  obj: T,
+  path: TPath,
+  value: PathValue<T, TPath>
+) {
+  const segments = path.split('.') as TPath[];
+  const lastKey = segments.pop();
+
+  let target: T = obj;
+
+  for (const key of segments) {
+    if (!(key in target)) {
+      target[key] = {} as PathValue<T, TPath>;
+    }
+    target = target[key];
+  }
+
+  if (lastKey) {
+    target[lastKey] = value;
+  }
+
+  return obj;
+}
