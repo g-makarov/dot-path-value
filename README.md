@@ -68,7 +68,7 @@ getByPath(obj, 'a.b.c'); // `c` property does not exist
 
 
 // set a property through an object
-setByPath(obj, 'a.b', "hello there");
+setByPath(obj, 'a.b', 'hello there');
 ```
 
 ## Types

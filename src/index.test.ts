@@ -1,6 +1,5 @@
 import { getByPath, setByPath } from './index';
 
-
 describe('getByPath', () => {
   const obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
 
@@ -30,32 +29,31 @@ describe('getByPath', () => {
 });
 
 describe('setByPath', () => {
-  test("should set the value at the specified path", () => {
+  test('should set the value at the specified path', () => {
     const obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
 
-    setByPath(obj, "a.b.c", 2);
+    setByPath(obj, 'a.b.c', 2);
     expect(obj.a.b.c).toEqual(2);
 
-    setByPath(obj, "d.0.e", 4);
+    setByPath(obj, 'd.0.e', 4);
     expect(obj.d[0]?.e).toEqual(4);
 
-    setByPath(obj, "d", []);
+    setByPath(obj, 'd', []);
     expect(obj.d).toEqual([]);
   });
 
   test('should work with arrays', () => {
     const arr = [1, 2, { a: 3 }];
-    setByPath(arr, "0", 5);
+    setByPath(arr, '0', 5);
     expect(arr[0]).toBe(5);
 
-    setByPath(arr, '2.a', 6)
+    setByPath(arr, '2.a', 6);
     expect(getByPath(arr, '2.a')).toBe(6);
-
   });
 
   test('should return the changed object', () => {
     const obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
-    const result = setByPath(obj, "a.b.c", 2);
+    const result = setByPath(obj, 'a.b.c', 2);
     expect(result).toBe(obj);
   });
 

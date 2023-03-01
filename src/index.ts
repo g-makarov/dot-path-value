@@ -42,7 +42,9 @@ export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
   ? TPath extends `${infer K}.${infer R}`
     ? K extends keyof T
       ? R extends Path<T[K]>
-        ? undefined extends T[K] ? PathValue<T[K], R> | undefined : PathValue<T[K], R>
+        ? undefined extends T[K]
+          ? PathValue<T[K], R> | undefined
+          : PathValue<T[K], R>
         : never
       : K extends `${ArrayKey}`
       ? T extends readonly (infer V)[]
@@ -68,7 +70,7 @@ export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
 export function setByPath<T extends Record<string, any>, TPath extends Path<T>>(
   obj: T,
   path: TPath,
-  value: PathValue<T, TPath>
+  value: PathValue<T, TPath>,
 ) {
   const segments = path.split('.') as TPath[];
   const lastKey = segments.pop();
