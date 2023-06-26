@@ -40,7 +40,7 @@ yarn add dot-path-value
 ## Usage
 
 ```ts
-import { getByPath, setByPath } from 'dot-path-value';
+import { getByPath, setByPath, getByRelativePath, setByRelativePath } from 'dot-path-value';
 
 const obj = {
   a: {
@@ -48,7 +48,7 @@ const obj = {
     d: [
       {
         e: 'world',
-      }
+      },
     ],
   },
 };
@@ -63,12 +63,20 @@ getByPath(obj, 'a.d.0'); // outputs '{ e: 'world' }' with type `{ e: string }`
 // also you can pass array as first argument
 getByPath([{ a: 1 }], '0.a'); // outputs '1' with type `number`
 
+// get a property from a relative path to another path
+getByRelativePath(obj, 'a.d.0', '../../b'); // outputs 'hello'
+
+// also you can use a mix of slash and dot notation
+getByRelativePath(obj, 'a.b', '../d.0/e'); // outputs 'world'
+
 // typescript errors
 getByPath(obj, 'a.b.c'); // `c` property does not exist
 
-
 // set a property through an object
-setByPath(obj, 'a.b', 'hello there');
+setByPath(obj, 'a.b', 'hello there'); // obj.a.b === 'hello there'
+
+// set a property from a relative path to another path
+setByRelativePath(obj, 'a.d.0.e', '../../../b', 'general kenobi'); // obj.a.b === 'general kenobi'
 ```
 
 ## Types
