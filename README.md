@@ -99,3 +99,5 @@ const obj = {
 type Foo = Path<typeof obj>; // 'a.d' | 'a' | 'a.b' | `a.d.${number}` | `a.d.${number}.e`
 type Bar = PathValue<typeof obj, 'a.b'>; // 'string'
 ```
+
+<a href="https://www.buymeacoffee.com/gmakarov" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
