@@ -67,6 +67,39 @@ export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
   return path.split('.').reduce((acc, key) => acc?.[key], obj) as PathValue<T, TPath>;
 }
 
+function getPathFromRelative<T>(path: Path<T>, relativePath?: string): Path<T> {
+  if (!relativePath || relativePath.trim() === '') {
+    return path;
+  }
+
+  const segments = relativePath.split(/[\\/]/);
+  let referencePathArray = path.split('.');
+
+  while (segments.length > 0) {
+    const segment = segments.shift();
+    if (segment === '..') {
+      referencePathArray.pop();
+    } else if (segment) {
+      // Add a check for a non-empty segment
+      referencePathArray.push(segment);
+    }
+  }
+
+  return referencePathArray.join('.') as Path<T>;
+}
+
+export function getByRelativePath<T extends Record<string, any>, TPath extends Path<T>>(
+  obj: T,
+  path: TPath,
+  relativePath: string,
+): PathValue<T, TPath> {
+  const newPath = getPathFromRelative<T>(path, relativePath);
+  if (newPath === '') {
+    return obj as PathValue<T, TPath>;
+  }
+  return getByPath(obj, newPath as TPath);
+}
+
 export function setByPath<T extends Record<string, any>, TPath extends Path<T>>(
   obj: T,
   path: TPath,
@@ -90,4 +123,14 @@ export function setByPath<T extends Record<string, any>, TPath extends Path<T>>(
   }
 
   return obj;
+}
+
+export function setByRelativePath<T extends Record<string, any>, TPath extends Path<T>>(
+  obj: T,
+  path: TPath,
+  relativePath: string,
+  value: unknown,
+) {
+  const targetPath = getPathFromRelative<T>(path, relativePath);
+  return setByPath(obj, targetPath as TPath, value as PathValue<T, TPath>);
 }
