@@ -26,6 +26,10 @@ describe('getByPath', () => {
     const obj: ObjType = {};
     expect(getByPath(obj, 'a.b.c')).toBe(undefined);
   });
+
+  test('should reject unsafe path segments', () => {
+    expect(() => getByPath({ a: 1 }, '__proto__.x' as any)).toThrow(TypeError);
+  });
 });
 
 describe('setByPath', () => {
@@ -74,5 +78,19 @@ describe('setByPath', () => {
         },
       },
     });
+  });
+
+  test('should reject __proto__ paths (prototype pollution)', () => {
+    expect(() => setByPath({} as Record<string, unknown>, '__proto__.polluted' as any, 1)).toThrow(
+      TypeError,
+    );
+    expect(({} as { polluted?: string }).polluted).toBeUndefined();
+  });
+
+  test('should reject constructor and prototype path segments', () => {
+    const obj = { a: 1 };
+    expect(() => setByPath(obj, 'a.constructor.prototype.polluted' as any, 1)).toThrow(
+      TypeError,
+    );
   });
 });

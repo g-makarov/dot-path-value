@@ -60,10 +60,21 @@ export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
     : never
   : never;
 
+const UNSAFE_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);
+
+function assertNoUnsafePathSegments(path: string): void {
+  for (const segment of path.split('.')) {
+    if (UNSAFE_PATH_SEGMENTS.has(segment)) {
+      throw new TypeError(`Path segment "${segment}" is not allowed (prototype pollution risk)`);
+    }
+  }
+}
+
 export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
   obj: T,
   path: TPath,
 ): PathValue<T, TPath> {
+  assertNoUnsafePathSegments(path);
   return path.split('.').reduce((acc, key) => acc?.[key], obj) as PathValue<T, TPath>;
 }
 
@@ -72,6 +83,7 @@ export function setByPath<T extends Record<string, any>, TPath extends Path<T>>(
   path: TPath,
   value: PathValue<T, TPath>,
 ) {
+  assertNoUnsafePathSegments(path);
   const segments = path.split('.') as TPath[];
   const lastKey = segments.pop();
 
