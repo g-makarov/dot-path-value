@@ -23,10 +23,10 @@ export type Path<T> = T extends readonly (infer V)[]
 type ArrayPathConcat<TKey extends string | number, TValue> = TValue extends Primitive
   ? never
   : TValue extends readonly (infer U)[]
-  ? U extends Primitive
-    ? never
-    : `${TKey}` | `${TKey}.${ArrayPath<TValue>}`
-  : `${TKey}.${ArrayPath<TValue>}`;
+    ? U extends Primitive
+      ? never
+      : `${TKey}` | `${TKey}.${ArrayPath<TValue>}`
+    : `${TKey}.${ArrayPath<TValue>}`;
 
 export type ArrayPath<T> = T extends readonly (infer V)[]
   ? IsTuple<T> extends true
@@ -47,17 +47,17 @@ export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
           : PathValue<T[K], R>
         : never
       : K extends `${ArrayKey}`
-      ? T extends readonly (infer V)[]
-        ? PathValue<V, R & Path<V>>
+        ? T extends readonly (infer V)[]
+          ? PathValue<V, R & Path<V>>
+          : never
         : never
-      : never
     : TPath extends keyof T
-    ? T[TPath]
-    : TPath extends `${ArrayKey}`
-    ? T extends readonly (infer V)[]
-      ? V
-      : never
-    : never
+      ? T[TPath]
+      : TPath extends `${ArrayKey}`
+        ? T extends readonly (infer V)[]
+          ? V
+          : never
+        : never
   : never;
 
 const UNSAFE_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);

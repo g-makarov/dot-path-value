@@ -89,8 +89,6 @@ describe('setByPath', () => {
 
   test('should reject constructor and prototype path segments', () => {
     const obj = { a: 1 };
-    expect(() => setByPath(obj, 'a.constructor.prototype.polluted' as any, 1)).toThrow(
-      TypeError,
-    );
+    expect(() => setByPath(obj, 'a.constructor.prototype.polluted' as any, 1)).toThrow(TypeError);
   });
 });
