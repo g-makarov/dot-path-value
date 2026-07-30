@@ -4,13 +4,15 @@ on:
   push:
     tags: ['v*']
 
+permissions:
+  contents: read
+  # Required for npm trusted publishing (OIDC). No NPM_TOKEN is used: npm trusts
+  # this workflow file in this repository, and issues provenance automatically.
+  id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      # Required for npm provenance (https://docs.npmjs.com/generating-provenance-statements)
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -18,12 +20,15 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: pnpm
+          node-version: 24
           registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm >= 11.5.1, newer than what the runner ships.
+      - run: npm install -g npm@latest
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm publish --access public --no-git-checks --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # `npm publish` (not `pnpm publish`): the OIDC exchange lives in the npm CLI.
+      # `prepublishOnly` runs lint, typecheck, tests, build and package linting first.
+      # NODE_AUTH_TOKEN is deliberately unset — a static token would shadow OIDC.
+      - run: npm publish --access public
