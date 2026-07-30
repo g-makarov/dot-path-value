@@ -12,3 +12,9 @@ yarn-error.log
 
 # build
 /dist
+
+# test/coverage
+coverage/
+
+# build metadata
+*.tsbuildinfo

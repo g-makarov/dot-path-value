@@ -21,10 +21,12 @@ Safely get and set deep nested properties using dot notation.
 ## Features
 
 - TypeScript first 🤙
-- Support arrays
+- `getByPath` and `setByPath`
+- Support arrays and tuples
 - Tiny
 - No dependencies
-- Utility types `Path` and `PathValue`
+- ESM + CJS, with correct types for both
+- Utility types `Path`, `PathValue` and `ArrayPath`
 
 If you find this library useful, why not
 
@@ -52,7 +54,7 @@ const obj = {
     d: [
       {
         e: 'world',
-      }
+      },
     ],
   },
 };
@@ -70,24 +72,50 @@ getByPath([{ a: 1 }], '0.a'); // outputs '1' with type `number`
 // typescript errors
 getByPath(obj, 'a.b.c'); // `c` property does not exist
 
-
 // set a property through an object
 setByPath(obj, 'a.b', 'hello there');
+
+// missing intermediate objects are created along the way,
+// numeric segments create arrays
+setByPath(obj, 'a.d.1.e', 'again'); // obj.a.d[1] === { e: 'again' }
 ```
+
+`setByPath` mutates the object it is given and returns it.
+
+### Path safety
+
+Both functions throw a `TypeError` for paths that are empty, contain an empty segment, or
+contain `__proto__`, `constructor` or `prototype`. `setByPath` only follows a segment when the
+object owns it, so inherited members (`toString`, `valueOf`, …) are never written through — a
+path like `toString.x` creates an own property instead of mutating a shared built-in.
+
+`setByPath` throws when a segment in the middle of the path holds a primitive
+(`setByPath({ a: 5 }, 'a.b', 1)`), rather than failing silently.
 
 ## Types
 
 `dot-path-value` exports a few types to ensure the type safety:
 
-| Type                  | Description                                                                               |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| `Path<T>`             | converts nested structure `T` into a string representation of the paths to its properties |
-| `PathValue<T, TPath>` | returns the type of the value at the specified path                                       |
+| Type                  | Description                                                                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `Path<T>`             | converts nested structure `T` into a string representation of the paths to its properties                                                 |
+| `PathValue<T, TPath>` | returns the type of the value at the specified path                                                                                       |
+| `ArrayPath<T>`        | same as `Path<T>`, but keeps only the paths that lead to an array                                                                         |
+| `Primitive`           | the values `Path` treats as leaves at the bottom of a path                                                                                |
+| `Terminal`            | everything `Path` does not descend into: `Primitive`, `Date`, `RegExp`, `Error`, functions, `Map`, `Set`, `WeakMap`, `WeakSet`, `Promise` |
+
+Built-in objects are leaves, so `Path<{ createdAt: Date }>` is `'createdAt'` and not the 40+
+paths of the `Date` methods.
+
+Paths are generated up to 10 levels deep (`MaxPathDepth`). The limit keeps self-referential
+types such as `interface Node { child: Node }` compiling instead of failing with
+"circularly references itself". Every type takes the depth as an optional second parameter if
+you need something else: `Path<T, 4>`.
 
 ### Types usage
 
 ```ts
-import { Path, PathValue } from 'dot-path-value';
+import type { Path, PathValue } from 'dot-path-value';
 
 const obj = {
   a: {
@@ -95,7 +123,7 @@ const obj = {
     d: [
       {
         e: 'world',
-      }
+      },
     ],
   },
 };

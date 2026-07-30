@@ -1,13 +1,22 @@
 {
-	"compilerOptions": {
-		"moduleResolution": "node",
-		"target": "esnext",
-		"module": "esnext",
-		"declaration": true,
-		"strict": true,
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"noUncheckedIndexedAccess": true,
-	},
-	"exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "declaration": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": []
+  },
+  "include": ["src", "tsdown.config.ts", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

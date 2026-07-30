@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The toolchain (tsdown, oxlint, vitest) needs a recent Node.
+        # The published package is verified separately in `compat`.
+        node-version: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run lint
+
+      - run: pnpm run format:check
+
+      - run: pnpm run typecheck
+
+      - run: pnpm run test
+
+      - run: pnpm run build
+
+      - run: pnpm run check:exports
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.node-version == 24
+        with:
+          name: dist
+          path: dist
+
+  compat:
+    # Verifies the build actually runs on every Node version `engines.node` claims.
+    needs: check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18, 20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Smoke test (ESM)
+        run: |
+          node --input-type=module -e "
+            import { getByPath, setByPath } from './dist/index.mjs';
+            const o = {};
+            setByPath(o, 'a.0.b', 1);
+            if (getByPath(o, 'a.0.b') !== 1) throw new Error('esm: unexpected value');
+            if (!Array.isArray(o.a)) throw new Error('esm: numeric segment did not create an array');
+          "
+
+      - name: Smoke test (CJS)
+        run: |
+          node -e "
+            const { getByPath, setByPath } = require('./dist/index.cjs');
+            const o = {};
+            setByPath(o, 'a.0.b', 1);
+            if (getByPath(o, 'a.0.b') !== 1) throw new Error('cjs: unexpected value');
+            if (!Array.isArray(o.a)) throw new Error('cjs: numeric segment did not create an array');
+          "

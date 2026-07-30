@@ -1,42 +1,72 @@
 export type Primitive = null | undefined | string | number | boolean | symbol | bigint;
 
+/**
+ * Values that are treated as leaves: paths never descend into them.
+ * Without this, `Path<{ createdAt: Date }>` would include every `Date` method.
+ */
+export type Terminal =
+  | Primitive
+  | Date
+  | RegExp
+  | Error
+  | ((...args: any[]) => any)
+  | Map<any, any>
+  | WeakMap<any, any>
+  | Set<any>
+  | WeakSet<any>
+  | Promise<any>;
+
 type ArrayKey = number;
 
 type IsTuple<T extends readonly any[]> = number extends T['length'] ? false : true;
 
 type TupleKeys<T extends readonly any[]> = Exclude<keyof T, keyof any[]>;
 
-export type PathConcat<TKey extends string | number, TValue> = TValue extends Primitive
-  ? `${TKey}`
-  : `${TKey}` | `${TKey}.${Path<TValue>}`;
+export type MaxPathDepth = 10;
 
-export type Path<T> = T extends readonly (infer V)[]
-  ? IsTuple<T> extends true
-    ? {
-        [K in TupleKeys<T>]-?: PathConcat<K & string, T[K]>;
-      }[TupleKeys<T>]
-    : PathConcat<ArrayKey, V>
-  : {
-      [K in keyof T]-?: PathConcat<K & string, T[K]>;
-    }[keyof T];
+type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-type ArrayPathConcat<TKey extends string | number, TValue> = TValue extends Primitive
+export type PathConcat<
+  TKey extends string | number,
+  TValue,
+  TDepth extends number = MaxPathDepth,
+> = TValue extends Terminal ? `${TKey}` : `${TKey}` | `${TKey}.${Path<TValue, TDepth>}`;
+
+export type Path<T, TDepth extends number = MaxPathDepth> = [TDepth] extends [never]
+  ? never
+  : T extends readonly (infer V)[]
+    ? IsTuple<T> extends true
+      ? {
+          [K in TupleKeys<T>]-?: PathConcat<K & string, T[K], Prev[TDepth]>;
+        }[TupleKeys<T>]
+      : PathConcat<ArrayKey, V, Prev[TDepth]>
+    : {
+        [K in keyof T]-?: PathConcat<K & string, T[K], Prev[TDepth]>;
+      }[keyof T];
+
+type ArrayPathConcat<
+  TKey extends string | number,
+  TValue,
+  TDepth extends number = MaxPathDepth,
+> = TValue extends Terminal
   ? never
   : TValue extends readonly (infer U)[]
-    ? U extends Primitive
+    ? U extends Terminal
       ? never
-      : `${TKey}` | `${TKey}.${ArrayPath<TValue>}`
-    : `${TKey}.${ArrayPath<TValue>}`;
+      : `${TKey}` | `${TKey}.${ArrayPath<TValue, TDepth>}`
+    : `${TKey}.${ArrayPath<TValue, TDepth>}`;
 
-export type ArrayPath<T> = T extends readonly (infer V)[]
-  ? IsTuple<T> extends true
-    ? {
-        [K in TupleKeys<T>]-?: ArrayPathConcat<K & string, T[K]>;
-      }[TupleKeys<T>]
-    : ArrayPathConcat<ArrayKey, V>
-  : {
-      [K in keyof T]-?: ArrayPathConcat<K & string, T[K]>;
-    }[keyof T];
+export type ArrayPath<T, TDepth extends number = MaxPathDepth> = [TDepth] extends [never]
+  ? never
+  : T extends readonly (infer V)[]
+    ? IsTuple<T> extends true
+      ? {
+          [K in TupleKeys<T>]-?: ArrayPathConcat<K & string, T[K], Prev[TDepth]>;
+        }[TupleKeys<T>]
+      : ArrayPathConcat<ArrayKey, V, Prev[TDepth]>
+    : {
+        [K in keyof T]-?: ArrayPathConcat<K & string, T[K], Prev[TDepth]>;
+      }[keyof T];
 
 export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
   ? TPath extends `${infer K}.${infer R}`
@@ -62,44 +92,73 @@ export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
 
 const UNSAFE_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);
 
-function assertNoUnsafePathSegments(path: string): void {
-  for (const segment of path.split('.')) {
+const hasOwn = (target: unknown, key: string): boolean =>
+  Object.prototype.hasOwnProperty.call(target, key);
+
+const isArrayIndex = (key: string | undefined): boolean =>
+  key !== undefined && /^(?:0|[1-9]\d*)$/.test(key);
+
+function parsePath(path: string): string[] {
+  if (path === '') {
+    throw new TypeError('Path must not be empty');
+  }
+
+  const segments = path.split('.');
+
+  for (const segment of segments) {
+    if (segment === '') {
+      throw new TypeError(`Path "${path}" contains an empty segment`);
+    }
     if (UNSAFE_PATH_SEGMENTS.has(segment)) {
       throw new TypeError(`Path segment "${segment}" is not allowed (prototype pollution risk)`);
     }
   }
+
+  return segments;
 }
 
 export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
   obj: T,
   path: TPath,
 ): PathValue<T, TPath> {
-  assertNoUnsafePathSegments(path);
-  return path.split('.').reduce((acc, key) => acc?.[key], obj) as PathValue<T, TPath>;
+  let acc: any = obj;
+
+  for (const key of parsePath(path)) {
+    if (acc === null || acc === undefined) {
+      return undefined as PathValue<T, TPath>;
+    }
+    acc = acc[key];
+  }
+
+  return acc as PathValue<T, TPath>;
 }
 
 export function setByPath<T extends Record<string, any>, TPath extends Path<T>>(
   obj: T,
   path: TPath,
   value: PathValue<T, TPath>,
-) {
-  assertNoUnsafePathSegments(path);
-  const segments = path.split('.') as TPath[];
-  const lastKey = segments.pop();
+): T {
+  const segments = parsePath(path);
+  const lastKey = segments.pop() as string;
 
-  let target: T = obj;
+  let target: any = obj;
 
   for (let i = 0; i < segments.length; i++) {
-    const key = segments[i] as TPath;
-    if (!(key in target)) {
-      target[key] = {} as PathValue<T, TPath>;
+    const key = segments[i] as string;
+    const next = hasOwn(target, key) ? target[key] : undefined;
+
+    if (next === undefined || next === null) {
+      target[key] = isArrayIndex(segments[i + 1] ?? lastKey) ? [] : {};
+    } else if (typeof next !== 'object' && typeof next !== 'function') {
+      throw new TypeError(
+        `Cannot set "${path}": segment "${key}" holds a ${typeof next}, not an object`,
+      );
     }
+
     target = target[key];
   }
 
-  if (lastKey) {
-    target[lastKey] = value;
-  }
+  target[lastKey] = value;
 
   return obj;
 }
