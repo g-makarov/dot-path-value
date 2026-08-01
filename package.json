@@ -36,7 +36,7 @@
     "format:check": "oxfmt --check",
     "check:exports": "publint && attw --pack .",
     "prepublishOnly": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build && pnpm run check:exports",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push --follow-tags"
   },
   "sideEffects": false,
   "files": [
