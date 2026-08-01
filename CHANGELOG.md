@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.1
+
+### Fixed
+
+- `Path` and `ArrayPath` now include numeric object keys. `keyof { 1: true }` is the number
+  literal `1`, and the mapped types intersected each key with `string`, which erased it — so
+  `Path<{ days: { 1: boolean } }>` was `'days'` instead of `'days' | 'days.1'`.
+- `PathValue` resolves those keys too. A path segment is always a string, so `'1'` has to be
+  matched back to the numeric key `1`; without that, `PathValue<{ days: { 1: boolean } }, 'days.1'>`
+  was `never`. ([#15](https://github.com/g-makarov/dot-path-value/issues/15))
+
+### Internal
+
+- The release pipeline is split into separate test, build and publish jobs, so build-time
+  dependencies never reach the job holding `id-token: write`. Releases are staged with
+  `npm stage publish` and approved by a human on npmjs.com with 2FA. Actions are pinned to
+  commit SHAs, installs run with `--ignore-scripts`, checkouts no longer persist credentials,
+  and dependencies must be at least 3 days old (`minimumReleaseAge`). Workflows are linted with
+  zizmor on every pull request.
+- CI now also runs against Node 26.
+
 ## 0.1.0
 
 ### Fixed
