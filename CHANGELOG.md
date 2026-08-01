@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- `hasByPath(obj, path)` reports whether a path exists, whatever value is stored at it, so a
+  missing key can be told apart from a key set to `undefined`. Only own properties count, and a
+  path never descends through `null`, `undefined` or a primitive.
+  ([#12](https://github.com/g-makarov/dot-path-value/issues/12))
+
 ## 0.1.1
 
 ### Fixed

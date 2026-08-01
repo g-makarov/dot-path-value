@@ -141,6 +141,39 @@ function parsePath(path: string): string[] {
   return segments;
 }
 
+/**
+ * Reports whether the path exists, regardless of the value stored at it.
+ *
+ * Unlike `getByPath(obj, path) !== undefined`, this tells a missing key apart
+ * from a key explicitly set to `undefined`.
+ *
+ * Only own properties count, so inherited members such as `toString` are not
+ * reported as present. A path never descends through `null`, `undefined` or a
+ * primitive; it returns `false` instead.
+ */
+export function hasByPath<T extends Record<string, any>, TPath extends Path<T>>(
+  obj: T,
+  path: TPath,
+): boolean {
+  let acc: any = obj;
+
+  for (const key of parsePath(path)) {
+    if (acc === null || acc === undefined) {
+      return false;
+    }
+    if (typeof acc !== 'object' && typeof acc !== 'function') {
+      return false;
+    }
+    if (!hasOwn(acc, key)) {
+      return false;
+    }
+
+    acc = acc[key];
+  }
+
+  return true;
+}
+
 export function getByPath<T extends Record<string, any>, TPath extends Path<T>>(
   obj: T,
   path: TPath,

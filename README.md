@@ -21,7 +21,7 @@ Safely get and set deep nested properties using dot notation.
 ## Features
 
 - TypeScript first 🤙
-- `getByPath` and `setByPath`
+- `getByPath`, `setByPath` and `hasByPath`
 - Support arrays and tuples
 - Tiny
 - No dependencies
@@ -82,9 +82,40 @@ setByPath(obj, 'a.d.1.e', 'again'); // obj.a.d[1] === { e: 'again' }
 
 `setByPath` mutates the object it is given and returns it.
 
+### Checking whether a path exists
+
+`hasByPath` reports whether the path exists, whatever value is stored at it:
+
+```ts
+import { getByPath, hasByPath } from 'dot-path-value';
+
+const user = { name: 'Jane', surname: undefined };
+
+getByPath(user, 'surname') !== undefined; // false — indistinguishable from a missing key
+hasByPath(user, 'surname'); // true
+```
+
+Only own properties count, so `hasByPath({}, 'toString')` is `false`. A path never descends
+through `null`, `undefined` or a primitive — `hasByPath({ a: 5 }, 'a.b')` is `false` rather
+than an error.
+
+**When you actually need it.** `Path<T>` constrains which strings are legal as a path; it says
+nothing about what the object holds at run time. Those two only come apart in a few places:
+
+- **Optional properties.** `Path<{ a?: { b: string } }>` is `'a' | 'a.b'` — optionality is
+  deliberately stripped, so the deep path is legal whether or not `a` is there.
+- **Values typed `| undefined`**, when absent and `undefined` mean different things to you —
+  JSON Patch, partial updates, dirty-tracking, `exactOptionalPropertyTypes`.
+- **Index signatures.** `Path<{ features: Record<string, boolean> }>` includes
+  `` `features.${string}` ``, so every key type-checks and none is guaranteed.
+
+For a fully known `T` with no optional properties, every path in `Path<T>` is present by
+construction and `hasByPath` is always `true` — the type has already answered the question.
+And for a single flat key, `Object.hasOwn(obj, key)` does the same job without this library.
+
 ### Path safety
 
-Both functions throw a `TypeError` for paths that are empty, contain an empty segment, or
+All three functions throw a `TypeError` for paths that are empty, contain an empty segment, or
 contain `__proto__`, `constructor` or `prototype`. `setByPath` only follows a segment when the
 object owns it, so inherited members (`toString`, `valueOf`, …) are never written through — a
 path like `toString.x` creates an own property instead of mutating a shared built-in.
