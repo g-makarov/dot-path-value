@@ -18,6 +18,13 @@ export type Terminal =
 
 type ArrayKey = number;
 
+/**
+ * Keys a path segment can be built from. `number` is required because object
+ * literals may declare numeric keys (`{ 1: true }`), and `keyof` reports those
+ * as number literals rather than strings.
+ */
+type PathKey = string | number;
+
 type IsTuple<T extends readonly any[]> = number extends T['length'] ? false : true;
 
 type TupleKeys<T extends readonly any[]> = Exclude<keyof T, keyof any[]>;
@@ -37,11 +44,11 @@ export type Path<T, TDepth extends number = MaxPathDepth> = [TDepth] extends [ne
   : T extends readonly (infer V)[]
     ? IsTuple<T> extends true
       ? {
-          [K in TupleKeys<T>]-?: PathConcat<K & string, T[K], Prev[TDepth]>;
+          [K in TupleKeys<T>]-?: PathConcat<K & PathKey, T[K], Prev[TDepth]>;
         }[TupleKeys<T>]
       : PathConcat<ArrayKey, V, Prev[TDepth]>
     : {
-        [K in keyof T]-?: PathConcat<K & string, T[K], Prev[TDepth]>;
+        [K in keyof T]-?: PathConcat<K & PathKey, T[K], Prev[TDepth]>;
       }[keyof T];
 
 type ArrayPathConcat<
@@ -61,32 +68,49 @@ export type ArrayPath<T, TDepth extends number = MaxPathDepth> = [TDepth] extend
   : T extends readonly (infer V)[]
     ? IsTuple<T> extends true
       ? {
-          [K in TupleKeys<T>]-?: ArrayPathConcat<K & string, T[K], Prev[TDepth]>;
+          [K in TupleKeys<T>]-?: ArrayPathConcat<K & PathKey, T[K], Prev[TDepth]>;
         }[TupleKeys<T>]
       : ArrayPathConcat<ArrayKey, V, Prev[TDepth]>
     : {
-        [K in keyof T]-?: ArrayPathConcat<K & string, T[K], Prev[TDepth]>;
+        [K in keyof T]-?: ArrayPathConcat<K & PathKey, T[K], Prev[TDepth]>;
       }[keyof T];
+
+/**
+ * Maps a path segment back to the key it came from. A segment is always a
+ * string, so a numeric key such as `{ 1: true }` has to be matched through its
+ * numeric literal form.
+ */
+type ResolveKey<T, TKey> = TKey extends keyof T
+  ? TKey
+  : TKey extends `${infer N extends number}`
+    ? N extends keyof T
+      ? N
+      : never
+    : never;
 
 export type PathValue<T, TPath extends Path<T> | ArrayPath<T>> = T extends any
   ? TPath extends `${infer K}.${infer R}`
-    ? K extends keyof T
-      ? R extends Path<T[K]>
-        ? undefined extends T[K]
-          ? PathValue<T[K], R> | undefined
-          : PathValue<T[K], R>
-        : never
-      : K extends `${ArrayKey}`
+    ? [ResolveKey<T, K>] extends [never]
+      ? K extends `${ArrayKey}`
         ? T extends readonly (infer V)[]
           ? PathValue<V, R & Path<V>>
           : never
         : never
-    : TPath extends keyof T
-      ? T[TPath]
-      : TPath extends `${ArrayKey}`
+      : ResolveKey<T, K> extends infer TResolved extends keyof T
+        ? R extends Path<T[TResolved]>
+          ? undefined extends T[TResolved]
+            ? PathValue<T[TResolved], R> | undefined
+            : PathValue<T[TResolved], R>
+          : never
+        : never
+    : [ResolveKey<T, TPath>] extends [never]
+      ? TPath extends `${ArrayKey}`
         ? T extends readonly (infer V)[]
           ? V
           : never
+        : never
+      : ResolveKey<T, TPath> extends infer TResolved extends keyof T
+        ? T[TResolved]
         : never
   : never;
 

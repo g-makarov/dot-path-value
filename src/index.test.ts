@@ -17,6 +17,13 @@ describe('getByPath', () => {
     expect(getByPath(arr, '2.a')).toBe(3);
   });
 
+  test('should work with numeric object keys', () => {
+    const days = { days: { 1: true, '2': false, 3: true } };
+    expect(getByPath(days, 'days.1')).toBe(true);
+    expect(getByPath(days, 'days.2')).toBe(false);
+    expect(getByPath(days, 'days.3')).toBe(true);
+  });
+
   test('should work with optional keys', () => {
     interface ObjType {
       a?: {

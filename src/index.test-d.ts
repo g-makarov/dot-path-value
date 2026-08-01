@@ -44,6 +44,12 @@ describe('Path', () => {
   test('unwraps optional properties', () => {
     expectTypeOf<'optional.deep'>().toExtend<Path<Obj>>();
   });
+
+  test('picks up numeric object keys', () => {
+    expectTypeOf<Path<{ days: { 1: boolean; '2': boolean; 3: boolean } }>>().toEqualTypeOf<
+      'days' | 'days.1' | 'days.2' | 'days.3'
+    >();
+  });
 });
 
 describe('ArrayPath', () => {
@@ -64,6 +70,16 @@ describe('PathValue', () => {
 
   test('adds undefined for optional segments', () => {
     expectTypeOf<PathValue<Obj, 'optional.deep'>>().toEqualTypeOf<number | undefined>();
+  });
+
+  test('resolves numeric object keys', () => {
+    interface Days {
+      days: { 1: boolean; '2': number; 3: string };
+    }
+
+    expectTypeOf<PathValue<Days, 'days.1'>>().toEqualTypeOf<boolean>();
+    expectTypeOf<PathValue<Days, 'days.2'>>().toEqualTypeOf<number>();
+    expectTypeOf<PathValue<Days, 'days.3'>>().toEqualTypeOf<string>();
   });
 });
 
