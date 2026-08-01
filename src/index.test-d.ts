@@ -1,6 +1,13 @@
 import { describe, expectTypeOf, test } from 'vitest';
 
-import { getByPath, setByPath, type ArrayPath, type Path, type PathValue } from './index';
+import {
+  getByPath,
+  hasByPath,
+  setByPath,
+  type ArrayPath,
+  type Path,
+  type PathValue,
+} from './index';
 
 interface Obj {
   a: {
@@ -98,6 +105,21 @@ describe('getByPath', () => {
     getByPath(obj, 'a.b.c');
     // @ts-expect-error `Date` methods are not paths
     getByPath(obj, 'createdAt.toISOString');
+  });
+});
+
+describe('hasByPath', () => {
+  const obj = {} as Obj;
+
+  test('returns a boolean', () => {
+    expectTypeOf(hasByPath(obj, 'a.b')).toEqualTypeOf<boolean>();
+    expectTypeOf(hasByPath(obj, 'optional.deep')).toEqualTypeOf<boolean>();
+    expectTypeOf(hasByPath([{ a: 1 }], '0.a')).toEqualTypeOf<boolean>();
+  });
+
+  test('rejects unknown paths', () => {
+    // @ts-expect-error `c` does not exist
+    hasByPath(obj, 'a.b.c');
   });
 });
 

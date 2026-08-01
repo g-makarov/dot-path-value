@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { getByPath, setByPath } from './index';
+import { getByPath, hasByPath, setByPath } from './index';
 
 describe('getByPath', () => {
   const obj = { a: { b: { c: 1 } }, d: [{ e: 2 }, { e: 3 }] };
@@ -48,6 +48,67 @@ describe('getByPath', () => {
   test('should reject empty paths and empty segments', () => {
     expect(() => getByPath({ a: 1 }, '' as any)).toThrow(TypeError);
     expect(() => getByPath({ a: 1 }, 'a..b' as any)).toThrow(TypeError);
+  });
+});
+
+describe('hasByPath', () => {
+  test('should tell a missing key apart from one set to undefined', () => {
+    const obj = { name: 'Jane', surname: undefined };
+
+    expect(getByPath(obj, 'surname')).toBe(undefined);
+    expect(hasByPath(obj, 'surname')).toBe(true);
+    expect(hasByPath(obj, 'nickname' as any)).toBe(false);
+  });
+
+  test('should walk nested paths', () => {
+    const obj = { a: { b: { c: 1 } } };
+
+    expect(hasByPath(obj, 'a')).toBe(true);
+    expect(hasByPath(obj, 'a.b')).toBe(true);
+    expect(hasByPath(obj, 'a.b.c')).toBe(true);
+    expect(hasByPath(obj, 'a.b.d' as any)).toBe(false);
+    expect(hasByPath(obj, 'x.y' as any)).toBe(false);
+  });
+
+  test('should work with arrays', () => {
+    const obj = { d: [{ e: 2 }] };
+
+    expect(hasByPath(obj, 'd.0')).toBe(true);
+    expect(hasByPath(obj, 'd.0.e')).toBe(true);
+    expect(hasByPath(obj, 'd.1')).toBe(false);
+    expect(hasByPath([1, 2, 3], '2')).toBe(true);
+    expect(hasByPath([1, 2, 3], '3')).toBe(false);
+  });
+
+  test('should not descend through null, undefined or primitives', () => {
+    expect(hasByPath({ a: null } as { a: { b: string } | null }, 'a.b' as any)).toBe(false);
+    expect(hasByPath({ a: undefined } as { a?: { b: string } }, 'a.b')).toBe(false);
+    expect(hasByPath({ a: 5 }, 'a.b' as any)).toBe(false);
+    expect(hasByPath({ a: 'hi' }, 'a.0' as any)).toBe(false);
+  });
+
+  test('should not report inherited properties as present', () => {
+    expect(hasByPath({} as Record<string, unknown>, 'toString' as any)).toBe(false);
+    expect(hasByPath({ a: 1 }, 'a.valueOf' as any)).toBe(false);
+  });
+
+  test('should report own properties holding falsy values', () => {
+    const obj = { zero: 0, empty: '', no: false, nil: null };
+
+    expect(hasByPath(obj, 'zero')).toBe(true);
+    expect(hasByPath(obj, 'empty')).toBe(true);
+    expect(hasByPath(obj, 'no')).toBe(true);
+    expect(hasByPath(obj, 'nil')).toBe(true);
+  });
+
+  test('should reject unsafe path segments', () => {
+    expect(() => hasByPath({ a: 1 }, '__proto__.x' as any)).toThrow(TypeError);
+    expect(() => hasByPath({ a: 1 }, 'a.constructor' as any)).toThrow(TypeError);
+  });
+
+  test('should reject empty paths and empty segments', () => {
+    expect(() => hasByPath({ a: 1 }, '' as any)).toThrow(TypeError);
+    expect(() => hasByPath({ a: 1 }, 'a..b' as any)).toThrow(TypeError);
   });
 });
 
