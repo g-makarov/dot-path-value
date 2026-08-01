@@ -112,6 +112,29 @@ types such as `interface Node { child: Node }` compiling instead of failing with
 "circularly references itself". Every type takes the depth as an optional second parameter if
 you need something else: `Path<T, 4>`.
 
+Numeric object keys are included, so `Path<{ days: { 1: boolean } }>` is
+`'days' | 'days.1'`.
+
+### Using the types in your own generic functions
+
+Take the path as its own type parameter. Otherwise `TPath` stays widened to the full union of
+paths and the return type widens to the union of every value type along with it:
+
+```ts
+// ❌ `value` is the union of every value type in `T`
+function pluck<T extends Record<string, any>>(obj: T, path: Path<T>) {
+  return getByPath(obj, path);
+}
+
+// ✅ `value` is the type at the path that was actually passed
+function pluck<T extends Record<string, any>, TPath extends Path<T>>(obj: T, path: TPath) {
+  return getByPath(obj, path);
+}
+```
+
+This is how `getByPath` and `setByPath` are declared, and it is a TypeScript inference rule
+rather than something the library can work around.
+
 ### Types usage
 
 ```ts
